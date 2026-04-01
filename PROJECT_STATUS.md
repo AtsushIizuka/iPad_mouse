@@ -161,8 +161,6 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swift test
 
 ## 6. 現在の既知の課題
 
-- カーソル移動がまだややカクつくことがある
-- 上下方向の移動感がまだ不安定になる場合がある
 - スクロール方向は設定値と体感がずれやすく、確認しながら調整中
 - 一部のジェスチャーは macOS の公開 API 制約上、ショートカット近似で実装している
 
@@ -171,12 +169,21 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun swift test
 - iPad と Mac の接続自体は可能
 - Mac 側のアクセシビリティ問題は、`/Users/atsushi/Applications/MacPointerHost.app` を許可対象にする方式で安定化
 - UI は日本語化済み
+- 座標系バグを修正し、カーソル縦方向の不安定さを解消
+- ポインタ加速を導入し、遅い動きと速い動きの操作感を改善
+- スクロールモメンタム（慣性スクロール）を追加し、Magic Trackpad に近い自然なスクロール感を実現
 - 2 本指スクロール方向は継続調整中
-- 体感上の滑らかさ改善は未完了
 
 ## 8. 更新ログ
 
-### 2026-04-01
+### 2026-04-01 (2回目)
+
+- **座標系バグを修正**: Mac 側 `PointerController` で `NSEvent.mouseLocation`（AppKit 座標: y が下から上）を CG グローバル座標（y が上から下）として誤用していた問題を修正。初回移動でカーソルが上下反転した位置に飛ぶ現象および画面端付近の垂直方向の不安定さを解消。
+- **複数ディスプレイの境界補正も修正**: `NSScreen.frame`（AppKit 座標系）から CG 座標系への変換を `cgScreenFrames()` ヘルパーにまとめ、マルチモニター環境のクランプも正確に動作するように修正。
+- **ポインタ加速を追加**: 小さい移動は線形のまま精密操作を維持し、速い移動は加速する非線形カーブを `TouchpadViewModel.accelerate(_:)` として実装。Magic Trackpad の「遅い動きは精確、速い動きは大きく」という特性に近づけた。
+- **スクロールモメンタム（慣性スクロール）を追加**: 2本指をリフトした後、最後の速度から減速しながらスクロールが継続する「コースト」動作を実装。`scrollWheelEventMomentumPhase` を使って macOS 側スクロールバーのフェードや inertia 対応アプリが自然に反応するようにした。
+
+### 2026-04-01 (1回目)
 
 - iPad / Mac の基本接続機能を構築
 - Mac 側アクセシビリティ導線を追加

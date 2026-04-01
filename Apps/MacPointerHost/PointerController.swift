@@ -190,6 +190,13 @@ final class CoreGraphicsPointerController: PointerController {
     private var pressedButtons: Set<PointerButton> = []
     private var cachedPointerLocation: CGPoint?
     private var scrollRemainder = CGPoint.zero
+    private var scrollSamples: [(dx: CGFloat, dy: CGFloat)] = []
+    private var momentumTimer: Timer?
+    private var momentumVX: CGFloat = 0
+    private var momentumVY: CGFloat = 0
+    private var momentumRemainderX: CGFloat = 0
+    private var momentumRemainderY: CGFloat = 0
+    private var momentumPhaseIsFirst = true
 
     func applyMove(dx: CGFloat, dy: CGFloat) {
         let currentLocation = currentPointerLocation()
@@ -248,6 +255,11 @@ final class CoreGraphicsPointerController: PointerController {
     }
 
     func applyScroll(dx: CGFloat, dy: CGFloat, phase: SharedCore.ScrollPhase) {
+        if phase == .began {
+            stopMomentum()
+            scrollSamples.removeAll()
+        }
+
         scrollRemainder.x += dx
         scrollRemainder.y += dy
 
@@ -257,8 +269,26 @@ final class CoreGraphicsPointerController: PointerController {
         scrollRemainder.x -= CGFloat(wheelX)
         scrollRemainder.y -= CGFloat(wheelY)
 
+        if phase == .changed {
+            scrollSamples.append((dx: dx, dy: dy))
+            if scrollSamples.count > 10 {
+                scrollSamples.removeFirst()
+            }
+        }
+
         if phase == .ended {
             scrollRemainder = .zero
+            let recent = scrollSamples.suffix(5)
+            if !recent.isEmpty {
+                let avgDX = recent.map(\.dx).reduce(0, +) / CGFloat(recent.count)
+                let avgDY = recent.map(\.dy).reduce(0, +) / CGFloat(recent.count)
+                if hypot(avgDX, avgDY) > 0.5 {
+                    startMomentum(velocityX: avgDX, velocityY: avgDY)
+                    scrollSamples.removeAll()
+                    return
+                }
+            }
+            scrollSamples.removeAll()
         }
 
         guard phase == .ended || wheelX != 0 || wheelY != 0 else {
@@ -275,7 +305,89 @@ final class CoreGraphicsPointerController: PointerController {
         )
         event?.setIntegerValueField(.scrollWheelEventIsContinuous, value: 1)
         event?.setIntegerValueField(.scrollWheelEventScrollPhase, value: scrollPhaseValue(for: phase))
+        event?.setIntegerValueField(.scrollWheelEventMomentumPhase, value: 0)
         event?.post(tap: .cghidEventTap)
+    }
+
+    private func startMomentum(velocityX: CGFloat, velocityY: CGFloat) {
+        scrollRemainder = .zero
+        momentumVX = velocityX
+        momentumVY = velocityY
+        momentumRemainderX = 0
+        momentumRemainderY = 0
+        momentumPhaseIsFirst = true
+
+        // Post the regular scroll ended event first so apps know the finger-driven phase ended.
+        let endedEvent = CGEvent(
+            scrollWheelEvent2Source: nil,
+            units: .pixel,
+            wheelCount: 2,
+            wheel1: 0,
+            wheel2: 0,
+            wheel3: 0
+        )
+        endedEvent?.setIntegerValueField(.scrollWheelEventIsContinuous, value: 1)
+        endedEvent?.setIntegerValueField(.scrollWheelEventScrollPhase, value: 4)
+        endedEvent?.setIntegerValueField(.scrollWheelEventMomentumPhase, value: 0)
+        endedEvent?.post(tap: .cghidEventTap)
+
+        momentumTimer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
+            self?.momentumTick()
+        }
+        RunLoop.main.add(momentumTimer!, forMode: .common)
+    }
+
+    private func stopMomentum() {
+        momentumTimer?.invalidate()
+        momentumTimer = nil
+        momentumVX = 0
+        momentumVY = 0
+    }
+
+    private func momentumTick() {
+        let decay: CGFloat = 0.93
+        momentumVX *= decay
+        momentumVY *= decay
+
+        let speed = hypot(momentumVX, momentumVY)
+        if speed < 0.3 {
+            momentumTimer?.invalidate()
+            momentumTimer = nil
+            let endedEvent = CGEvent(
+                scrollWheelEvent2Source: nil,
+                units: .pixel,
+                wheelCount: 2,
+                wheel1: 0,
+                wheel2: 0,
+                wheel3: 0
+            )
+            endedEvent?.setIntegerValueField(.scrollWheelEventIsContinuous, value: 1)
+            endedEvent?.setIntegerValueField(.scrollWheelEventScrollPhase, value: 0)
+            endedEvent?.setIntegerValueField(.scrollWheelEventMomentumPhase, value: 4)
+            endedEvent?.post(tap: .cghidEventTap)
+            return
+        }
+
+        momentumRemainderX += momentumVX
+        momentumRemainderY += momentumVY
+        let wheelX = Int32(momentumRemainderX.rounded(.towardZero))
+        let wheelY = Int32(momentumRemainderY.rounded(.towardZero))
+        momentumRemainderX -= CGFloat(wheelX)
+        momentumRemainderY -= CGFloat(wheelY)
+
+        let event = CGEvent(
+            scrollWheelEvent2Source: nil,
+            units: .pixel,
+            wheelCount: 2,
+            wheel1: wheelY,
+            wheel2: wheelX,
+            wheel3: 0
+        )
+        event?.setIntegerValueField(.scrollWheelEventIsContinuous, value: 1)
+        event?.setIntegerValueField(.scrollWheelEventScrollPhase, value: 0)
+        event?.setIntegerValueField(.scrollWheelEventMomentumPhase, value: momentumPhaseIsFirst ? 1 : 2)
+        event?.post(tap: .cghidEventTap)
+        momentumPhaseIsFirst = false
     }
 
     func applyGestureCommand(_ kind: GestureKind, shortcut: ShortcutBinding) {
@@ -304,13 +416,19 @@ final class CoreGraphicsPointerController: PointerController {
             return cachedPointerLocation
         }
 
-        let location = NSEvent.mouseLocation
-        cachedPointerLocation = location
-        return location
+        // NSEvent.mouseLocation is in AppKit global coordinates (y increases upward from the
+        // bottom-left of the primary screen). CGWarpMouseCursorPosition and all CG APIs use
+        // global display coordinates (y increases downward from the top-left of the primary
+        // screen). Convert once so all subsequent math stays in CG space.
+        let nsPoint = NSEvent.mouseLocation
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+        let cgPoint = CGPoint(x: nsPoint.x, y: primaryHeight - nsPoint.y)
+        cachedPointerLocation = cgPoint
+        return cgPoint
     }
 
     private func projectedPoint(for point: CGPoint) -> CGPoint {
-        let screens = NSScreen.screens.map(\.frame)
+        let screens = cgScreenFrames()
         guard !screens.isEmpty else { return point }
 
         if let containing = screens.first(where: { contains(point, in: $0) }) {
@@ -323,6 +441,16 @@ final class CoreGraphicsPointerController: PointerController {
 
         guard let nearest else { return point }
         return clamp(point, to: nearest)
+    }
+
+    // NSScreen frames are in AppKit global coordinates (y-up). Convert them to CG global
+    // coordinates (y-down) so they match the CGPoint values we work with internally.
+    private func cgScreenFrames() -> [CGRect] {
+        let primaryHeight = NSScreen.screens.first?.frame.height ?? 0
+        return NSScreen.screens.map { screen in
+            let f = screen.frame
+            return CGRect(x: f.minX, y: primaryHeight - f.maxY, width: f.width, height: f.height)
+        }
     }
 
     private func contains(_ point: CGPoint, in rect: CGRect) -> Bool {

@@ -144,9 +144,21 @@ final class TouchpadViewModel: ObservableObject {
 
     func sendMove(dx: CGFloat, dy: CGFloat) {
         let speed = CGFloat(preferences.trackingSpeed)
-        let scaledDX = Float(dx * speed)
-        let scaledDY = Float(dy * speed)
+        let scaledDX = Float(Self.accelerate(dx) * speed)
+        let scaledDY = Float(Self.accelerate(dy) * speed)
         try? transport.send(.pointerMove(dx: scaledDX, dy: scaledDY, ts: Self.timestamp()))
+    }
+
+    // Non-linear pointer acceleration: movements below the threshold stay linear for
+    // fine-grained control; larger movements gain extra speed for quick screen traversal,
+    // matching the feel of a hardware Magic Trackpad.
+    private static func accelerate(_ value: CGFloat) -> CGFloat {
+        let sign: CGFloat = value < 0 ? -1 : 1
+        let magnitude = abs(value)
+        let threshold: CGFloat = 2.5
+        guard magnitude > threshold else { return value }
+        let excess = magnitude - threshold
+        return sign * (threshold + excess * (1.0 + excess * 0.12))
     }
 
     func sendButton(_ button: PointerButton, phase: ButtonPhase, clickCount: Int = 1) {
