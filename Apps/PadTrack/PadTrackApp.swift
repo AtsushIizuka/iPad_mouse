@@ -37,52 +37,46 @@ private struct ControllerRootView: View {
             )
             .ignoresSafeArea()
 
-            TouchpadSurfaceView(
-                configuration: .init(preferences: preferences),
-                onPointerMove: { delta in
-                    viewModel.sendMove(dx: delta.x, dy: delta.y)
-                },
-                onButton: { button, phase, clickCount in
-                    viewModel.sendButton(button, phase: phase, clickCount: clickCount)
-                },
-                onPrimaryDoubleClick: {
-                    viewModel.sendDoublePrimaryClick()
-                },
-                onScroll: { delta, phase in
-                    viewModel.sendScroll(dx: delta.x, dy: delta.y, phase: phase)
-                },
-                onGesture: { kind in
-                    viewModel.sendGesture(kind)
+            VStack(spacing: 0) {
+                FunctionKeyBar(viewModel: viewModel, isSettingsPresented: $isSettingsPresented)
+
+                TouchpadSurfaceView(
+                    configuration: .init(preferences: preferences),
+                    onPointerMove: { delta in
+                        viewModel.sendMove(dx: delta.x, dy: delta.y)
+                    },
+                    onButton: { button, phase, clickCount in
+                        viewModel.sendButton(button, phase: phase, clickCount: clickCount)
+                    },
+                    onPrimaryDoubleClick: {
+                        viewModel.sendDoublePrimaryClick()
+                    },
+                    onScroll: { delta, phase in
+                        viewModel.sendScroll(dx: delta.x, dy: delta.y, phase: phase)
+                    },
+                    onGesture: { kind in
+                        viewModel.sendGesture(kind)
+                    },
+                    onNewTouchSequence: {
+                        viewModel.resetMovementSmoothing()
+                    }
+                )
+                .ignoresSafeArea(edges: [.bottom, .leading, .trailing])
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .overlay(alignment: .bottomLeading) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(viewModel.connectionText)
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                        Text(viewModel.helperText)
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 14)
+                    .background(.ultraThinMaterial.opacity(0.5), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .padding(18)
                 }
-            )
-            .ignoresSafeArea()
-            .overlay(alignment: .topLeading) {
-                Button {
-                    isSettingsPresented = true
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 19, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 48, height: 48)
-                        .background(Color.black.opacity(0.22), in: Circle())
-                        .overlay(Circle().stroke(Color.white.opacity(0.16), lineWidth: 1))
-                }
-                .padding(.top, 18)
-                .padding(.leading, 18)
-            }
-            .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(viewModel.connectionText)
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    Text(viewModel.helperText)
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 14)
-                .background(.ultraThinMaterial.opacity(0.5), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .padding(18)
             }
         }
         .sheet(isPresented: $isSettingsPresented) {
@@ -90,6 +84,69 @@ private struct ControllerRootView: View {
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
+    }
+}
+
+private struct FunctionKeyBar: View {
+    @ObservedObject var viewModel: TouchpadViewModel
+    @Binding var isSettingsPresented: Bool
+
+    private struct FunctionKey {
+        let icon: String
+        let label: String
+        let kind: GestureKind
+    }
+
+    private let keys: [FunctionKey] = [
+        FunctionKey(icon: "sun.min",               label: "明るさを下げる",             kind: .brightnessDown),
+        FunctionKey(icon: "sun.max",               label: "明るさを上げる",             kind: .brightnessUp),
+        FunctionKey(icon: "square.split.2x1",      label: "ミッションコントロール",      kind: .missionControl),
+        FunctionKey(icon: "square.grid.3x3.fill",  label: "Launchpad",               kind: .launchpad),
+        FunctionKey(icon: "keyboard.chevron.compact.down", label: "キーボードの明るさを下げる", kind: .keyboardBrightnessDown),
+        FunctionKey(icon: "keyboard",              label: "キーボードの明るさを上げる",  kind: .keyboardBrightnessUp),
+        FunctionKey(icon: "backward.end.fill",     label: "前のトラック",              kind: .mediaPrevious),
+        FunctionKey(icon: "playpause.fill",         label: "再生 / 一時停止",           kind: .mediaPlayPause),
+        FunctionKey(icon: "forward.end.fill",      label: "次のトラック",              kind: .mediaNext),
+        FunctionKey(icon: "speaker.slash.fill",    label: "消音",                     kind: .volumeMute),
+        FunctionKey(icon: "speaker.minus.fill",    label: "音量を下げる",              kind: .volumeDown),
+        FunctionKey(icon: "speaker.plus.fill",     label: "音量を上げる",              kind: .volumeUp),
+    ]
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Button {
+                isSettingsPresented = true
+            } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 52, height: 52)
+            }
+
+            Divider()
+                .frame(height: 28)
+                .overlay(Color.white.opacity(0.3))
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach(keys, id: \.kind) { key in
+                        Button {
+                            viewModel.sendGesture(key.kind)
+                        } label: {
+                            Image(systemName: key.icon)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                        .accessibilityLabel(key.label)
+                    }
+                }
+                .padding(.horizontal, 10)
+            }
+        }
+        .frame(height: 52)
+        .background(.ultraThinMaterial.opacity(0.25))
     }
 }
 

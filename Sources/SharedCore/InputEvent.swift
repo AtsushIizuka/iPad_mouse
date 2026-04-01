@@ -30,6 +30,16 @@ public enum GestureKind: String, Codable, Sendable, Equatable, Hashable, CaseIte
     case smartZoom
     case rotateLeft
     case rotateRight
+    case brightnessDown
+    case brightnessUp
+    case keyboardBrightnessDown
+    case keyboardBrightnessUp
+    case mediaPrevious
+    case mediaPlayPause
+    case mediaNext
+    case volumeMute
+    case volumeDown
+    case volumeUp
 }
 
 public enum InputEvent: Sendable, Equatable {

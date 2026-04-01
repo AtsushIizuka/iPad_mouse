@@ -175,6 +175,11 @@ final class GestureShortcutStore: ObservableObject {
             return ShortcutBinding(preset: .smartZoom)
         case .rotateLeft, .rotateRight:
             return .none
+        case .brightnessDown, .brightnessUp,
+             .keyboardBrightnessDown, .keyboardBrightnessUp,
+             .mediaPrevious, .mediaPlayPause, .mediaNext,
+             .volumeMute, .volumeDown, .volumeUp:
+            return .none
         }
     }
 }
@@ -391,6 +396,11 @@ final class CoreGraphicsPointerController: PointerController {
     }
 
     func applyGestureCommand(_ kind: GestureKind, shortcut: ShortcutBinding) {
+        if let keyType = kind.mediaKeyType {
+            postSystemKey(keyType, keyDown: true)
+            postSystemKey(keyType, keyDown: false)
+            return
+        }
         guard let keyCode = shortcut.preset.keyCode else { return }
         let down = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true)
         let up = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: false)
@@ -398,6 +408,27 @@ final class CoreGraphicsPointerController: PointerController {
         up?.flags = shortcut.preset.flags
         down?.post(tap: .cghidEventTap)
         up?.post(tap: .cghidEventTap)
+    }
+
+    // Posts a system-defined media/hardware key event (NX_KEYTYPE_*).
+    // data1 encodes both the key type and the key-down/key-up state as expected
+    // by the CoreGraphics HID event tap (subtype 8 = NX_SUBTYPE_AUX_CONTROL_BUTTONS).
+    // The flag bits follow the NX IOKit convention: 0x0a00 = key down, 0x0b00 = key up.
+    private func postSystemKey(_ keyType: Int32, keyDown: Bool) {
+        let flagBits: Int32 = keyDown ? 0x0a00 : 0x0b00  // key-down / key-up NX flag
+        let data1 = Int((keyType << 16) | flagBits)
+        guard let event = NSEvent.otherEvent(
+            with: .systemDefined,
+            location: .zero,
+            modifierFlags: [],
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            subtype: 8,
+            data1: data1,
+            data2: -1
+        ) else { return }
+        event.cgEvent?.post(tap: .cghidEventTap)
     }
 
     private func scrollPhaseValue(for phase: SharedCore.ScrollPhase) -> Int64 {
@@ -500,6 +531,44 @@ extension GestureKind {
             return "左に回転"
         case .rotateRight:
             return "右に回転"
+        case .brightnessDown:
+            return "明るさを下げる"
+        case .brightnessUp:
+            return "明るさを上げる"
+        case .keyboardBrightnessDown:
+            return "キーボードの明るさを下げる"
+        case .keyboardBrightnessUp:
+            return "キーボードの明るさを上げる"
+        case .mediaPrevious:
+            return "前のトラック"
+        case .mediaPlayPause:
+            return "再生 / 一時停止"
+        case .mediaNext:
+            return "次のトラック"
+        case .volumeMute:
+            return "消音"
+        case .volumeDown:
+            return "音量を下げる"
+        case .volumeUp:
+            return "音量を上げる"
+        }
+    }
+
+    // NX_KEYTYPE_* values for media/hardware keys posted as systemDefined events.
+    // Returns nil for gesture kinds that use keyboard shortcuts instead.
+    var mediaKeyType: Int32? {
+        switch self {
+        case .brightnessDown:         return 3   // NX_KEYTYPE_BRIGHTNESS_DOWN
+        case .brightnessUp:           return 2   // NX_KEYTYPE_BRIGHTNESS_UP
+        case .keyboardBrightnessDown: return 22  // NX_KEYTYPE_ILLUMINATION_DOWN
+        case .keyboardBrightnessUp:   return 21  // NX_KEYTYPE_ILLUMINATION_UP
+        case .mediaPrevious:          return 20  // NX_KEYTYPE_PREVIOUS
+        case .mediaPlayPause:         return 16  // NX_KEYTYPE_PLAY
+        case .mediaNext:              return 17  // NX_KEYTYPE_NEXT
+        case .volumeMute:             return 7   // NX_KEYTYPE_MUTE
+        case .volumeDown:             return 1   // NX_KEYTYPE_SOUND_DOWN
+        case .volumeUp:               return 0   // NX_KEYTYPE_SOUND_UP
+        default:                      return nil
         }
     }
 }

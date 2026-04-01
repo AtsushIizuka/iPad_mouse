@@ -142,23 +142,43 @@ final class TouchpadViewModel: ObservableObject {
         transport.connect()
     }
 
+    private var smoothedDx: CGFloat = 0
+    private var smoothedDy: CGFloat = 0
+
+    func resetMovementSmoothing() {
+        smoothedDx = 0
+        smoothedDy = 0
+    }
+
     func sendMove(dx: CGFloat, dy: CGFloat) {
+        // Smooth the raw touch delta first (before acceleration) so the acceleration
+        // curve receives a stable velocity signal. Exponential moving average with
+        // α = 0.65 reduces jitter from touch-sampling variability and network latency
+        // while still feeling responsive to direction changes.
+        let alpha: CGFloat = 0.65
+        smoothedDx = alpha * dx + (1 - alpha) * smoothedDx
+        smoothedDy = alpha * dy + (1 - alpha) * smoothedDy
+
         let speed = CGFloat(preferences.trackingSpeed)
-        let scaledDX = Float(Self.accelerate(dx) * speed)
-        let scaledDY = Float(Self.accelerate(dy) * speed)
+        let accelerated = Self.accelerate(dx: smoothedDx, dy: smoothedDy)
+        let scaledDX = Float(accelerated.dx * speed)
+        let scaledDY = Float(accelerated.dy * speed)
         try? transport.send(.pointerMove(dx: scaledDX, dy: scaledDY, ts: Self.timestamp()))
     }
 
-    // Non-linear pointer acceleration: movements below the threshold stay linear for
-    // fine-grained control; larger movements gain extra speed for quick screen traversal,
+    // Non-linear pointer acceleration applied to the movement vector as a whole so
+    // that the direction is preserved and diagonal movements feel as smooth as
+    // straight ones. Movements below the threshold stay linear for fine-grained
+    // control; larger movements gain extra speed for quick screen traversal,
     // matching the feel of a hardware Magic Trackpad.
-    private static func accelerate(_ value: CGFloat) -> CGFloat {
-        let sign: CGFloat = value < 0 ? -1 : 1
-        let magnitude = abs(value)
+    private static func accelerate(dx: CGFloat, dy: CGFloat) -> (dx: CGFloat, dy: CGFloat) {
+        let magnitude = hypot(dx, dy)
         let threshold: CGFloat = 2.5
-        guard magnitude > threshold else { return value }
+        guard magnitude > threshold else { return (dx, dy) }
         let excess = magnitude - threshold
-        return sign * (threshold + excess * (1.0 + excess * 0.12))
+        let accelerated = threshold + excess * (1.0 + excess * 0.12)
+        let scale = accelerated / magnitude
+        return (dx * scale, dy * scale)
     }
 
     func sendButton(_ button: PointerButton, phase: ButtonPhase, clickCount: Int = 1) {

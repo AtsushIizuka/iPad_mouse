@@ -67,6 +67,7 @@ struct TouchpadSurfaceView: UIViewRepresentable {
     let onPrimaryDoubleClick: () -> Void
     let onScroll: (CGPoint, SharedCore.ScrollPhase) -> Void
     let onGesture: (GestureKind) -> Void
+    let onNewTouchSequence: () -> Void
 
     func makeUIView(context: Context) -> TouchpadUIView {
         let view = TouchpadUIView()
@@ -76,6 +77,7 @@ struct TouchpadSurfaceView: UIViewRepresentable {
         view.onPrimaryDoubleClick = onPrimaryDoubleClick
         view.onScroll = onScroll
         view.onGesture = onGesture
+        view.onNewTouchSequence = onNewTouchSequence
         return view
     }
 
@@ -86,6 +88,7 @@ struct TouchpadSurfaceView: UIViewRepresentable {
         uiView.onPrimaryDoubleClick = onPrimaryDoubleClick
         uiView.onScroll = onScroll
         uiView.onGesture = onGesture
+        uiView.onNewTouchSequence = onNewTouchSequence
     }
 }
 
@@ -111,6 +114,7 @@ final class TouchpadUIView: UIView {
     var onPrimaryDoubleClick: (() -> Void)?
     var onScroll: ((CGPoint, SharedCore.ScrollPhase) -> Void)?
     var onGesture: ((GestureKind) -> Void)?
+    var onNewTouchSequence: (() -> Void)?
 
     private var trackedTouches: [ObjectIdentifier: TouchSample] = [:]
 
@@ -160,6 +164,7 @@ final class TouchpadUIView: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if trackedTouches.isEmpty {
             resetSequenceState()
+            onNewTouchSequence?()
         }
 
         for touch in touches {
