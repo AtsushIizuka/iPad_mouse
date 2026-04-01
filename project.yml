@@ -1,0 +1,58 @@
+name: iPadMouse
+options:
+  minimumXcodeGenVersion: 2.38.0
+packages:
+  SharedCore:
+    path: .
+settings:
+  base:
+    SWIFT_VERSION: 6.0
+targets:
+  PadTrack:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - Apps/PadTrack
+    info:
+      path: Apps/PadTrack/Info.plist
+      properties:
+        CFBundleDisplayName: PadTrack
+        NSBonjourServices:
+          - _ipadmousepad._tcp
+        NSLocalNetworkUsageDescription: PadTrack discovers your Mac on the local network so it can act as a wireless trackpad.
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.atsushi.PadTrack
+        PRODUCT_NAME: PadTrack
+        TARGETED_DEVICE_FAMILY: "2"
+        SUPPORTS_MACCATALYST: NO
+        DEVELOPMENT_TEAM: 8XGDZZB243
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - package: SharedCore
+        product: SharedCore
+  MacPointerHost:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - Apps/MacPointerHost
+    info:
+      path: Apps/MacPointerHost/Info.plist
+      properties:
+        CFBundleDisplayName: MacPointerHost
+        LSUIElement: true
+        NSBonjourServices:
+          - _ipadmousepad._tcp
+        NSLocalNetworkUsageDescription: PadTrack can discover your iPad on the local network and receive pointer input.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.atsushi.MacPointerHost
+        PRODUCT_NAME: MacPointerHost
+        DEVELOPMENT_TEAM: 8XGDZZB243
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - package: SharedCore
+        product: SharedCore

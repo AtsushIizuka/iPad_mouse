@@ -1,0 +1,462 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0AE0A108FAF6EBC2B75DE713 /* SharedCore in Frameworks */ = {isa = PBXBuildFile; productRef = E4463E4EE07108E48C593559 /* SharedCore */; };
+		476483BA00A8C48DC1D242D4 /* TouchpadSurfaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63039D498BEA7C1900033545 /* TouchpadSurfaceView.swift */; };
+		49096A103847011A2EA518D2 /* MacHostViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6568D058F8469732A48B455 /* MacHostViewModel.swift */; };
+		645C5A8B075A50117E241645 /* MacPointerHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96D25D550FFE02B3BA53C658 /* MacPointerHostApp.swift */; };
+		66FCF52887766AAB5AA539FC /* AccessibilityPermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F83E236A0A2C72C4F8D4A07 /* AccessibilityPermissionManager.swift */; };
+		B8A03C35789081B86F78E00B /* SharedCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3FA06D33A8B75242EA9589CC /* SharedCore */; };
+		E3C4C3D1C9F0042BC2749241 /* PointerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48F7934E703D98778DF0D05B /* PointerController.swift */; };
+		E91E2B55F18F818581226DC2 /* TouchpadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB8978052C35079126A6801F /* TouchpadViewModel.swift */; };
+		FB1D92D8481A04FD65789E4C /* PadTrackApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AA9D4A16828EA93496B607 /* PadTrackApp.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		48F7934E703D98778DF0D05B /* PointerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointerController.swift; sourceTree = "<group>"; };
+		54AA9D4A16828EA93496B607 /* PadTrackApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PadTrackApp.swift; sourceTree = "<group>"; };
+		63039D498BEA7C1900033545 /* TouchpadSurfaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchpadSurfaceView.swift; sourceTree = "<group>"; };
+		7F83E236A0A2C72C4F8D4A07 /* AccessibilityPermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityPermissionManager.swift; sourceTree = "<group>"; };
+		92E718540A36303BC9371835 /* MacPointerHost.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacPointerHost.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		96D25D550FFE02B3BA53C658 /* MacPointerHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacPointerHostApp.swift; sourceTree = "<group>"; };
+		AD3F413D847C445588B73FE1 /* ipad_mouse */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ipad_mouse; path = .; sourceTree = SOURCE_ROOT; };
+		B0E2F296F172EF9E0C06E428 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C35B7D9734560EC7A6843585 /* PadTrack.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PadTrack.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6568D058F8469732A48B455 /* MacHostViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacHostViewModel.swift; sourceTree = "<group>"; };
+		D33A1168CFF5B2F2E847C7D8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EB8978052C35079126A6801F /* TouchpadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchpadViewModel.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9778D30A900B5D8C2B7A6480 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0AE0A108FAF6EBC2B75DE713 /* SharedCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E938432D069F9CA83DF2C7DA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8A03C35789081B86F78E00B /* SharedCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		24E5F8D26231804A84638F21 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				92E718540A36303BC9371835 /* MacPointerHost.app */,
+				C35B7D9734560EC7A6843585 /* PadTrack.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2D870820EEBF8301193EBC9C /* PadTrack */ = {
+			isa = PBXGroup;
+			children = (
+				B0E2F296F172EF9E0C06E428 /* Info.plist */,
+				54AA9D4A16828EA93496B607 /* PadTrackApp.swift */,
+				63039D498BEA7C1900033545 /* TouchpadSurfaceView.swift */,
+				EB8978052C35079126A6801F /* TouchpadViewModel.swift */,
+			);
+			name = PadTrack;
+			path = Apps/PadTrack;
+			sourceTree = "<group>";
+		};
+		61D66E251BA29CB18D878F11 /* MacPointerHost */ = {
+			isa = PBXGroup;
+			children = (
+				7F83E236A0A2C72C4F8D4A07 /* AccessibilityPermissionManager.swift */,
+				D33A1168CFF5B2F2E847C7D8 /* Info.plist */,
+				C6568D058F8469732A48B455 /* MacHostViewModel.swift */,
+				96D25D550FFE02B3BA53C658 /* MacPointerHostApp.swift */,
+				48F7934E703D98778DF0D05B /* PointerController.swift */,
+			);
+			name = MacPointerHost;
+			path = Apps/MacPointerHost;
+			sourceTree = "<group>";
+		};
+		748F5E4CEA7A27CA1C205508 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				AD3F413D847C445588B73FE1 /* ipad_mouse */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		930188D34657B6A48E75DE5B = {
+			isa = PBXGroup;
+			children = (
+				61D66E251BA29CB18D878F11 /* MacPointerHost */,
+				748F5E4CEA7A27CA1C205508 /* Packages */,
+				2D870820EEBF8301193EBC9C /* PadTrack */,
+				24E5F8D26231804A84638F21 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7813EB61F9B2150DDEBAEBF5 /* MacPointerHost */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 53B29548FA187B33E6B20F1A /* Build configuration list for PBXNativeTarget "MacPointerHost" */;
+			buildPhases = (
+				44BC59611DA7FA00CFE2AF53 /* Sources */,
+				E938432D069F9CA83DF2C7DA /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MacPointerHost;
+			packageProductDependencies = (
+				3FA06D33A8B75242EA9589CC /* SharedCore */,
+			);
+			productName = MacPointerHost;
+			productReference = 92E718540A36303BC9371835 /* MacPointerHost.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C1324CC06A7F5A0584E35ADD /* PadTrack */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D37FF7EE400ACF323AC52EC3 /* Build configuration list for PBXNativeTarget "PadTrack" */;
+			buildPhases = (
+				FA98A152BA4C2B71E4C2FB37 /* Sources */,
+				9778D30A900B5D8C2B7A6480 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PadTrack;
+			packageProductDependencies = (
+				E4463E4EE07108E48C593559 /* SharedCore */,
+			);
+			productName = PadTrack;
+			productReference = C35B7D9734560EC7A6843585 /* PadTrack.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F4AEB930F8DE6893AAF58EDF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					7813EB61F9B2150DDEBAEBF5 = {
+						DevelopmentTeam = 8XGDZZB243;
+						ProvisioningStyle = Automatic;
+					};
+					C1324CC06A7F5A0584E35ADD = {
+						DevelopmentTeam = 8XGDZZB243;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 1B97B1FCF647DECB1E85C677 /* Build configuration list for PBXProject "iPadMouse" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 930188D34657B6A48E75DE5B;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				502519E9A3F1CFDC63DB88FD /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 24E5F8D26231804A84638F21 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7813EB61F9B2150DDEBAEBF5 /* MacPointerHost */,
+				C1324CC06A7F5A0584E35ADD /* PadTrack */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		44BC59611DA7FA00CFE2AF53 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				66FCF52887766AAB5AA539FC /* AccessibilityPermissionManager.swift in Sources */,
+				49096A103847011A2EA518D2 /* MacHostViewModel.swift in Sources */,
+				645C5A8B075A50117E241645 /* MacPointerHostApp.swift in Sources */,
+				E3C4C3D1C9F0042BC2749241 /* PointerController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA98A152BA4C2B71E4C2FB37 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB1D92D8481A04FD65789E4C /* PadTrackApp.swift in Sources */,
+				476483BA00A8C48DC1D242D4 /* TouchpadSurfaceView.swift in Sources */,
+				E91E2B55F18F818581226DC2 /* TouchpadViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4B15FF3268D27C7C22AFAF75 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8XGDZZB243;
+				INFOPLIST_FILE = Apps/PadTrack/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.atsushi.PadTrack;
+				PRODUCT_NAME = PadTrack;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		991138002CCF6F465D1F6962 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		AA940D38AE1F1E4BEBFE3FBF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 8XGDZZB243;
+				INFOPLIST_FILE = Apps/MacPointerHost/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atsushi.MacPointerHost;
+				PRODUCT_NAME = MacPointerHost;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		B72C412D6F6BAB9990C1D7C6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8XGDZZB243;
+				INFOPLIST_FILE = Apps/PadTrack/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.atsushi.PadTrack;
+				PRODUCT_NAME = PadTrack;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Release;
+		};
+		D6126A61038C0591AC58EC9D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		D8CBBCB4E5D4072424D95DD7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 8XGDZZB243;
+				INFOPLIST_FILE = Apps/MacPointerHost/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.atsushi.MacPointerHost;
+				PRODUCT_NAME = MacPointerHost;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1B97B1FCF647DECB1E85C677 /* Build configuration list for PBXProject "iPadMouse" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D6126A61038C0591AC58EC9D /* Debug */,
+				991138002CCF6F465D1F6962 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		53B29548FA187B33E6B20F1A /* Build configuration list for PBXNativeTarget "MacPointerHost" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA940D38AE1F1E4BEBFE3FBF /* Debug */,
+				D8CBBCB4E5D4072424D95DD7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D37FF7EE400ACF323AC52EC3 /* Build configuration list for PBXNativeTarget "PadTrack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4B15FF3268D27C7C22AFAF75 /* Debug */,
+				B72C412D6F6BAB9990C1D7C6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		502519E9A3F1CFDC63DB88FD /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3FA06D33A8B75242EA9589CC /* SharedCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SharedCore;
+		};
+		E4463E4EE07108E48C593559 /* SharedCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SharedCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F4AEB930F8DE6893AAF58EDF /* Project object */;
+}
