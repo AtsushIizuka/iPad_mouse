@@ -119,6 +119,7 @@ final class TouchpadUIView: UIView {
     private var trackedTouches: [ObjectIdentifier: TouchSample] = [:]
 
     private var pendingPrimaryTap: DispatchWorkItem?
+    private var pendingPrimaryLongPress: DispatchWorkItem?
     private var lastPrimaryTapTimestamp: TimeInterval?
     private var secondPrimaryTapActive = false
     private var primaryDragActive = false
@@ -141,6 +142,7 @@ final class TouchpadUIView: UIView {
     private let tapMovementThreshold: CGFloat = 12
     private let tapDurationThreshold: TimeInterval = 0.25
     private let doubleTapWindow: TimeInterval = 0.28
+    private let longPressDragDelay: TimeInterval = 0.22
     private let dragTriggerDistance: CGFloat = 10
     private let scrollTriggerDistance: CGFloat = 12
     private let pageSwipeDistance: CGFloat = 90
@@ -248,6 +250,7 @@ final class TouchpadUIView: UIView {
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        cancelPendingPrimaryLongPress()
         if primaryDragActive {
             onButton?(.left, .up, 1)
         }
@@ -269,10 +272,12 @@ final class TouchpadUIView: UIView {
             sample.startTime - lastPrimaryTapTimestamp <= doubleTapWindow
         else {
             secondPrimaryTapActive = false
+            schedulePrimaryLongPress()
             return
         }
 
         cancelPendingPrimaryTap()
+        cancelPendingPrimaryLongPress()
         secondPrimaryTapActive = true
     }
 
@@ -281,6 +286,10 @@ final class TouchpadUIView: UIView {
             x: sample.currentPoint.x - sample.previousPoint.x,
             y: sample.currentPoint.y - sample.previousPoint.y
         )
+
+        if !primaryDragActive, distance(from: sample.startPoint, to: sample.currentPoint) > tapMovementThreshold {
+            cancelPendingPrimaryLongPress()
+        }
 
         if secondPrimaryTapActive {
             let translation = distance(from: sample.startPoint, to: sample.currentPoint)
@@ -300,6 +309,7 @@ final class TouchpadUIView: UIView {
 
     private func handleSingleTouchEnded(samples: [TouchSample], endTimestamp: TimeInterval, isSequenceEnding: Bool) {
         guard let sample = samples.first else { return }
+        cancelPendingPrimaryLongPress()
 
         if primaryDragActive {
             onButton?(.left, .up, 1)
@@ -541,9 +551,38 @@ final class TouchpadUIView: UIView {
         DispatchQueue.main.asyncAfter(deadline: .now() + doubleTapWindow, execute: workItem)
     }
 
+    private func schedulePrimaryLongPress() {
+        let workItem = DispatchWorkItem { [weak self] in
+            guard
+                let self,
+                self.trackedTouches.count == 1,
+                let sample = self.currentSamples().first,
+                self.distance(from: sample.startPoint, to: sample.currentPoint) <= self.tapMovementThreshold,
+                !self.primaryDragActive
+            else {
+                self?.pendingPrimaryLongPress = nil
+                return
+            }
+
+            self.primaryDragActive = true
+            self.secondPrimaryTapActive = false
+            self.pendingPrimaryLongPress = nil
+            self.onButton?(.left, .down, 1)
+        }
+
+        cancelPendingPrimaryLongPress()
+        pendingPrimaryLongPress = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + longPressDragDelay, execute: workItem)
+    }
+
     private func cancelPendingPrimaryTap() {
         pendingPrimaryTap?.cancel()
         pendingPrimaryTap = nil
+    }
+
+    private func cancelPendingPrimaryLongPress() {
+        pendingPrimaryLongPress?.cancel()
+        pendingPrimaryLongPress = nil
     }
 
     private func cancelPendingSecondaryTap() {
@@ -553,12 +592,14 @@ final class TouchpadUIView: UIView {
 
     private func cancelPendingTapActions() {
         cancelPendingPrimaryTap()
+        cancelPendingPrimaryLongPress()
         cancelPendingSecondaryTap()
         lastPrimaryTapTimestamp = nil
         lastTwoFingerTapTimestamp = nil
     }
 
     private func resetSequenceState() {
+        cancelPendingPrimaryLongPress()
         secondPrimaryTapActive = false
         primaryDragActive = false
         threeFingerDragActive = false

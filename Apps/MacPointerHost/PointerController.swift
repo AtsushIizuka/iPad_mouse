@@ -192,6 +192,12 @@ protocol PointerController {
 }
 
 final class CoreGraphicsPointerController: PointerController {
+    private enum BrowserHistoryDirection {
+        case back
+        case forward
+    }
+
+    private let keyboardEventSource = CGEventSource(stateID: .hidSystemState)
     private var pressedButtons: Set<PointerButton> = []
     private var cachedPointerLocation: CGPoint?
     private var scrollRemainder = CGPoint.zero
@@ -396,18 +402,64 @@ final class CoreGraphicsPointerController: PointerController {
     }
 
     func applyGestureCommand(_ kind: GestureKind, shortcut: ShortcutBinding) {
-        if let keyType = kind.mediaKeyType {
-            postSystemKey(keyType, keyDown: true)
-            postSystemKey(keyType, keyDown: false)
+        if performDirectAction(for: kind) {
             return
         }
         guard let keyCode = shortcut.preset.keyCode else { return }
-        let down = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true)
-        let up = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: false)
-        down?.flags = shortcut.preset.flags
-        up?.flags = shortcut.preset.flags
+        postKeyboardShortcut(keyCode: keyCode, flags: shortcut.preset.flags)
+    }
+
+    private func performDirectAction(for kind: GestureKind) -> Bool {
+        switch kind {
+        case .pageBack:
+            if performBrowserHistory(.back) {
+                return true
+            }
+            postKeyboardShortcut(keyCode: CGKeyCode(kVK_ANSI_LeftBracket), flags: .maskCommand)
+            _ = runAppleScript(#"tell application "System Events" to keystroke "[" using command down"#)
+            return true
+        case .pageForward:
+            if performBrowserHistory(.forward) {
+                return true
+            }
+            postKeyboardShortcut(keyCode: CGKeyCode(kVK_ANSI_RightBracket), flags: .maskCommand)
+            _ = runAppleScript(#"tell application "System Events" to keystroke "]" using command down"#)
+            return true
+        case .launchpad:
+            postDistributedNotification(named: "com.apple.launchpad.toggle")
+            postSystemKey(13, keyDown: true)   // NX_KEYTYPE_LAUNCH_PANEL
+            postSystemKey(13, keyDown: false)
+            postKeyboardShortcut(keyCode: CGKeyCode(kVK_F4), flags: [])
+            postKeyboardShortcut(keyCode: CGKeyCode(kVK_F4), flags: .maskSecondaryFn)
+            _ = runAppleScript(#"tell application "System Events" to key code 118"#)
+            return true
+        case .brightnessDown, .brightnessUp,
+             .keyboardBrightnessDown, .keyboardBrightnessUp,
+             .mediaPrevious, .mediaPlayPause, .mediaNext,
+             .volumeMute, .volumeDown, .volumeUp:
+            guard let keyType = kind.mediaKeyType else { return false }
+            postSystemKey(keyType, keyDown: true)
+            postSystemKey(keyType, keyDown: false)
+            return true
+        case .missionControl:
+            openAppIfAvailable(at: "/System/Applications/Mission Control.app")
+            return false
+        default:
+            return false
+        }
+    }
+
+    private func postKeyboardShortcut(keyCode: CGKeyCode, flags: CGEventFlags) {
+        let down = CGEvent(keyboardEventSource: keyboardEventSource, virtualKey: keyCode, keyDown: true)
+        let up = CGEvent(keyboardEventSource: keyboardEventSource, virtualKey: keyCode, keyDown: false)
+        down?.flags = flags
+        up?.flags = flags
         down?.post(tap: .cghidEventTap)
         up?.post(tap: .cghidEventTap)
+        down?.post(tap: .cgSessionEventTap)
+        up?.post(tap: .cgSessionEventTap)
+        down?.post(tap: .cgAnnotatedSessionEventTap)
+        up?.post(tap: .cgAnnotatedSessionEventTap)
     }
 
     // Posts a system-defined media/hardware key event (NX_KEYTYPE_*).
@@ -429,6 +481,57 @@ final class CoreGraphicsPointerController: PointerController {
             data2: -1
         ) else { return }
         event.cgEvent?.post(tap: .cghidEventTap)
+        event.cgEvent?.post(tap: .cgSessionEventTap)
+        event.cgEvent?.post(tap: .cgAnnotatedSessionEventTap)
+    }
+
+    private func postDistributedNotification(named name: String) {
+        DistributedNotificationCenter.default().postNotificationName(
+            Notification.Name(name),
+            object: nil,
+            userInfo: nil,
+            deliverImmediately: true
+        )
+    }
+
+    private func performBrowserHistory(_ direction: BrowserHistoryDirection) -> Bool {
+        guard let bundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier else {
+            return false
+        }
+
+        let javascript = direction == .back ? "history.back()" : "history.forward()"
+        let script: String
+
+        switch bundleIdentifier {
+        case "com.apple.Safari":
+            script = #"tell application "Safari" to do JavaScript "\#(javascript)" in current tab of front window"#
+        case "com.google.Chrome":
+            script = #"tell application "Google Chrome" to execute active tab of front window javascript "\#(javascript)""#
+        case "com.brave.Browser":
+            script = #"tell application "Brave Browser" to execute active tab of front window javascript "\#(javascript)""#
+        case "company.thebrowser.Browser":
+            script = #"tell application "Arc" to execute active tab of front window javascript "\#(javascript)""#
+        case "com.microsoft.edgemac":
+            script = #"tell application "Microsoft Edge" to execute active tab of front window javascript "\#(javascript)""#
+        default:
+            return false
+        }
+
+        return runAppleScript(script)
+    }
+
+    @discardableResult
+    private func runAppleScript(_ source: String) -> Bool {
+        guard let script = NSAppleScript(source: source) else { return false }
+        var error: NSDictionary?
+        script.executeAndReturnError(&error)
+        return error == nil
+    }
+
+    private func openAppIfAvailable(at path: String) {
+        let url = URL(fileURLWithPath: path)
+        guard FileManager.default.fileExists(atPath: path) else { return }
+        NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration()) { _, _ in }
     }
 
     private func scrollPhaseValue(for phase: SharedCore.ScrollPhase) -> Int64 {

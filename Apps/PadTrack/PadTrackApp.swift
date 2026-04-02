@@ -21,24 +21,25 @@ struct PadTrackApp: App {
 }
 
 private struct ControllerRootView: View {
+    fileprivate static let versionLabel = "v1.0.0"
+    fileprivate static let buildLabel = "2026-04-01e"
+
     @ObservedObject var viewModel: TouchpadViewModel
     @ObservedObject var preferences: TrackpadPreferences
     @State private var isSettingsPresented = false
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.12, green: 0.18, blue: 0.31),
-                    Color(red: 0.09, green: 0.10, blue: 0.16)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                FunctionKeyBar(viewModel: viewModel, isSettingsPresented: $isSettingsPresented)
+        GeometryReader { proxy in
+            ZStack {
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.12, green: 0.18, blue: 0.31),
+                        Color(red: 0.09, green: 0.10, blue: 0.16)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
 
                 TouchpadSurfaceView(
                     configuration: .init(preferences: preferences),
@@ -61,26 +62,55 @@ private struct ControllerRootView: View {
                         viewModel.resetMovementSmoothing()
                     }
                 )
-                .ignoresSafeArea(edges: [.bottom, .leading, .trailing])
+                .ignoresSafeArea()
+
+                VStack {
+                    HStack {
+                        FunctionKeyBar(viewModel: viewModel, isSettingsPresented: $isSettingsPresented)
+                            .frame(maxWidth: min(proxy.size.width - 24, 760), alignment: .leading)
+                            .shadow(color: .black.opacity(0.24), radius: 18, y: 10)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.top, proxy.safeAreaInsets.top + 8)
+                    .padding(.horizontal, 12)
+
+                    Spacer(minLength: 0)
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(alignment: .bottomLeading) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(viewModel.connectionText)
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                        Text(viewModel.helperText)
-                            .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.7))
+                .zIndex(2)
+
+                VStack {
+                    Spacer()
+                    HStack {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("画面バージョン \(Self.versionLabel) (\(Self.buildLabel))")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.white.opacity(0.82))
+                            Text(viewModel.connectionText)
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                            Text(viewModel.helperText)
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.7))
+                        }
+                        Spacer()
                     }
                     .padding(.horizontal, 18)
                     .padding(.vertical, 14)
                     .background(.ultraThinMaterial.opacity(0.5), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .padding(18)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .zIndex(1)
             }
+            .ignoresSafeArea()
         }
         .sheet(isPresented: $isSettingsPresented) {
-            PadTrackSettingsView(viewModel: viewModel, preferences: preferences)
+            PadTrackSettingsView(
+                viewModel: viewModel,
+                preferences: preferences,
+                buildLabel: Self.buildLabel
+            )
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
@@ -95,13 +125,53 @@ private struct FunctionKeyBar: View {
         let icon: String
         let label: String
         let kind: GestureKind
+
+        var shortLabel: String {
+            switch kind {
+            case .brightnessDown:
+                return "暗く"
+            case .brightnessUp:
+                return "明るく"
+            case .pageBack:
+                return "戻る"
+            case .pageForward:
+                return "進む"
+            case .missionControl:
+                return "MC"
+            case .launchpad:
+                return "LP"
+            case .showDesktop:
+                return "デスク"
+            case .keyboardBrightnessDown:
+                return "KB-"
+            case .keyboardBrightnessUp:
+                return "KB+"
+            case .mediaPrevious:
+                return "前"
+            case .mediaPlayPause:
+                return "再生"
+            case .mediaNext:
+                return "次"
+            case .volumeMute:
+                return "消音"
+            case .volumeDown:
+                return "音-"
+            case .volumeUp:
+                return "音+"
+            default:
+                return ""
+            }
+        }
     }
 
     private let keys: [FunctionKey] = [
         FunctionKey(icon: "sun.min",               label: "明るさを下げる",             kind: .brightnessDown),
         FunctionKey(icon: "sun.max",               label: "明るさを上げる",             kind: .brightnessUp),
+        FunctionKey(icon: "chevron.backward",      label: "戻る",                     kind: .pageBack),
+        FunctionKey(icon: "chevron.forward",       label: "進む",                     kind: .pageForward),
         FunctionKey(icon: "square.split.2x1",      label: "ミッションコントロール",      kind: .missionControl),
         FunctionKey(icon: "square.grid.3x3.fill",  label: "Launchpad",               kind: .launchpad),
+        FunctionKey(icon: "macwindow",             label: "デスクトップを表示",         kind: .showDesktop),
         FunctionKey(icon: "keyboard.chevron.compact.down", label: "キーボードの明るさを下げる", kind: .keyboardBrightnessDown),
         FunctionKey(icon: "keyboard",              label: "キーボードの明るさを上げる",  kind: .keyboardBrightnessUp),
         FunctionKey(icon: "backward.end.fill",     label: "前のトラック",              kind: .mediaPrevious),
@@ -117,53 +187,109 @@ private struct FunctionKeyBar: View {
             Button {
                 isSettingsPresented = true
             } label: {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 52, height: 52)
+                VStack(spacing: 4) {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 17, weight: .semibold))
+                    Text("設定")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .frame(width: 60, height: 56)
             }
+            .buttonStyle(.plain)
+            .contentShape(Rectangle())
 
             Divider()
                 .frame(height: 28)
                 .overlay(Color.white.opacity(0.3))
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach(keys, id: \.kind) { key in
-                        Button {
-                            viewModel.sendGesture(key.kind)
-                        } label: {
+            HStack(spacing: 6) {
+                ForEach(keys, id: \.kind) { key in
+                    Button {
+                        viewModel.sendGesture(key.kind)
+                    } label: {
+                        VStack(spacing: 4) {
                             Image(systemName: key.icon)
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(.white)
-                                .frame(width: 44, height: 44)
-                                .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            Text(key.shortLabel)
+                                .font(.system(size: 9, weight: .semibold))
+                                .lineLimit(1)
                         }
-                        .accessibilityLabel(key.label)
+                        .foregroundStyle(.white)
+                        .frame(width: 54, height: 48)
+                        .background(Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }
+                    .buttonStyle(.plain)
+                    .contentShape(Rectangle())
+                    .accessibilityLabel(key.label)
                 }
-                .padding(.horizontal, 10)
             }
+            .padding(.horizontal, 10)
         }
-        .frame(height: 52)
-        .background(.ultraThinMaterial.opacity(0.25))
+        .frame(height: 64)
+        .background(Color.black.opacity(0.68), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+        )
     }
 }
 
 private struct PadTrackSettingsView: View {
     @ObservedObject var viewModel: TouchpadViewModel
     @ObservedObject var preferences: TrackpadPreferences
+    let buildLabel: String
 
     var body: some View {
         NavigationStack {
             Form {
+                Section("アプリ情報") {
+                    LabeledContent("画面バージョン", value: "\(ControllerRootView.versionLabel) (\(buildLabel))")
+                    Text("更新後は、こちらの表示が指定したバージョンに変わっているか確認してください。")
+                        .foregroundStyle(.secondary)
+                }
+
                 Section("ポイントとクリック") {
                     Toggle("タップでクリック", isOn: $preferences.tapToClick)
+
+                    HStack(spacing: 10) {
+                        Button("標準") {
+                            preferences.applyMovementPreset(.standard)
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button("おすすめ") {
+                            preferences.applyMovementPreset(.responsive)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+
+                    Text("再インストール後に重く感じたら「おすすめ」で前の軽さに近づけられます。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
 
                     HStack {
                         Text("移動速度")
                         Slider(value: $preferences.trackingSpeed, in: 0.4...2.8)
                         Text(String(format: "%.2f", preferences.trackingSpeed))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44)
+                    }
+
+                    HStack {
+                        Text("カーソル加速度")
+                        Slider(value: $preferences.accelerationStrength, in: 0...1.2)
+                        Text(String(format: "%.2f", preferences.accelerationStrength))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .frame(width: 44)
+                    }
+
+                    HStack {
+                        Text("加速開始")
+                        Slider(value: $preferences.accelerationThreshold, in: 0.8...4.0)
+                        Text(String(format: "%.2f", preferences.accelerationThreshold))
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                             .frame(width: 44)
@@ -207,7 +333,7 @@ private struct PadTrackSettingsView: View {
                     GestureLine(icon: "cursorarrow.motionlines", text: "1本指ドラッグ: ポインタ移動")
                     GestureLine(icon: "hand.tap", text: "1回タップ: 左クリック")
                     GestureLine(icon: "hand.tap.fill", text: "1本指ダブルタップ: ダブルクリック")
-                    GestureLine(icon: "rectangle.and.hand.point.up.left.fill", text: "1本指でタップして保持しながら移動: ドラッグ")
+                    GestureLine(icon: "rectangle.and.hand.point.up.left.fill", text: "1本指長押しして移動: ドラッグ")
                     GestureLine(icon: "cursorarrow.click.2", text: "2本指タップまたは隅タップ: 副ボタンクリック")
                     GestureLine(icon: "arrow.up.and.down.and.arrow.left.and.right", text: "2本指ドラッグ: スクロール")
                     GestureLine(icon: "arrow.left.and.right.circle", text: "2本指スワイプ: 戻る / 進む")
